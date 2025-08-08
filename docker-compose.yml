@@ -1,0 +1,30 @@
+services:
+  nggasak-analyzer:
+    build: .
+    container_name: nggasak-analysis
+    volumes:
+      - ./data:/data
+      - ./analysis:/analysis
+    working_dir: /data
+    stdin_open: true
+    tty: true
+    environment:
+      - LANG=C.UTF-8
+      - LC_ALL=C.UTF-8
+    command: /bin/bash
+    
+  # Optional: Web interface service for jadx-gui (if needed later)
+  jadx-web:
+    build: .
+    container_name: nggasak-jadx-web
+    volumes:
+      - ./data:/data
+      - ./analysis:/analysis
+    working_dir: /data
+    ports:
+      - "8080:8080"
+    stdin_open: true
+    tty: true
+    profiles:
+      - web
+    command: jadx-gui --port 8080 --host 0.0.0.0
