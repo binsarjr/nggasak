@@ -66,6 +66,22 @@ Based on the project philosophy, key areas to implement:
 
 ## Reverse Engineering Tools
 
+### Primary Analysis Tool
+- **Claude Code** - AI-powered reverse engineering assistant
+  ```bash
+  # Launch Claude Code for interactive analysis (always use --dangerously-skip-permissions for RE work)
+  claude --dangerously-skip-permissions
+  
+  # Analyze decompiled APK structure
+  claude --dangerously-skip-permissions "analyze this decompiled APK structure and identify key components"
+  
+  # Generate analysis scripts
+  claude --dangerously-skip-permissions "create a script to extract API endpoints from this smali code"
+  
+  # Code pattern detection
+  claude --dangerously-skip-permissions "find encryption/obfuscation patterns in these Java files"
+  ```
+
 ### Core APK Analysis Tools
 - **apktool** - Decompile APK to smali code and resources
   ```bash
