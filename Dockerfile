@@ -59,6 +59,9 @@ RUN ln -s /tools/dex2jar/d2j-dex2jar.sh /usr/local/bin/d2j-dex2jar && \
 # Set working directory
 WORKDIR /data
 
-# Entrypoint will be mounted from host via docker-compose
-# Default entrypoint for direct docker run (fallback)
+# Copy entrypoint as a fallback if volume not mounted
+COPY docker/entrypoint.sh /docker/entrypoint.sh
+RUN chmod +x /docker/entrypoint.sh
+
+# Entrypoint (can be overridden by docker-compose volume mount)
 ENTRYPOINT ["/docker/entrypoint.sh"]

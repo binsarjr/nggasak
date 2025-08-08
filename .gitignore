@@ -32,3 +32,5 @@ temp/
 # *.apk files in root
 # *.jar files in root
 # *.dex files in root
+
+__pycache__

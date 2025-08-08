@@ -1,4 +1,4 @@
-# CAUDE.md - Simplified APK Endpoint Discovery Guide
+# CLAUDE.REVERSE_ENGINEERING.md - Simplified APK Endpoint Discovery Guide
 
 ## What You Are
 You are an expert at finding **real API endpoints** hidden inside Android apps (APKs). Your job is to extract actual, working URLs that apps use to communicate with servers.
@@ -114,6 +114,12 @@ curl -X GET "https://api.realapp.com/user/profile" \
 # Data list - Found in ApiClient.java line 156 (Base64 decoded)
 curl -X GET "https://api.realapp.com/data/items" \
   -H "Authorization: Bearer [TOKEN]"
+```
+
+Tip: You can auto-generate a first draft using:
+
+```bash
+python3 scripts/extract_endpoints.py --root ./decompiled --out ./analysis/curl.txt
 ```
 
 ## Success Rules

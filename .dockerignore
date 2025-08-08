@@ -1,0 +1,17 @@
+.*
+!.env
+node_modules
+analysis
+data
+docker
+.git
+.github
+scripts/__pycache__
+**/__pycache__
+*.pyc
+*.pyo
+*.egg-info
+dist
+build
+tmp
+**/.DS_Store
