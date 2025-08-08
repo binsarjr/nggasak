@@ -5,9 +5,12 @@ services:
     volumes:
       - ./data:/data
       - ./analysis:/analysis
+      - ./docker:/docker
     working_dir: /data
     stdin_open: true
     tty: true
+    env_file:
+      - .env
     environment:
       - LANG=C.UTF-8
       - LC_ALL=C.UTF-8
@@ -20,11 +23,14 @@ services:
     volumes:
       - ./data:/data
       - ./analysis:/analysis
+      - ./docker:/docker
     working_dir: /data
     ports:
       - "8080:8080"
     stdin_open: true
     tty: true
+    env_file:
+      - .env
     profiles:
       - web
     command: jadx-gui --port 8080 --host 0.0.0.0

@@ -1,0 +1,34 @@
+# Environment files with actual secrets
+.env
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Docker
+.docker/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+
+# APK analysis output (keep in data/ and analysis/ folders)
+# *.apk files in root
+# *.jar files in root
+# *.dex files in root

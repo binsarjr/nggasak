@@ -14,7 +14,13 @@ RUN apt-get update && apt-get install -y \
     git \
     curl \
     bash \
+    nodejs \
+    npm \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Claude Code CLI
+RUN curl -fsSL https://claude.ai/install.sh | bash
 
 # Create tools directory
 RUN mkdir -p /tools /data
@@ -53,8 +59,6 @@ RUN ln -s /tools/dex2jar/d2j-dex2jar.sh /usr/local/bin/d2j-dex2jar && \
 # Set working directory
 WORKDIR /data
 
-# Create entrypoint script for easy access to tools
-RUN echo '#!/bin/bash\n# Auto-detect JAVA_HOME\nexport JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))\necho "Nggasak Analysis Tools Container"\necho "Available tools:"\necho "- apktool ($(apktool --version 2>&1 | head -1))"\necho "- dex2jar (d2j-dex2jar)"\necho "- jadx ($(jadx --version 2>&1 | head -1))"\necho "- reflutter ($(reflutter --version 2>&1 | head -1))"\necho ""\necho "Working directory: /data"\necho "All tools are in PATH. Example usage:"\necho "  apktool d app.apk"\necho "  d2j-dex2jar app.apk"\necho "  jadx app.apk -d output/"\necho "  reflutter app.apk"\necho ""\nif [ "$#" -eq 0 ]; then\n  exec /bin/bash\nelse\n  exec "$@"\nfi' > /usr/local/bin/entrypoint.sh && \
-    chmod +x /usr/local/bin/entrypoint.sh
-
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# Entrypoint will be mounted from host via docker-compose
+# Default entrypoint for direct docker run (fallback)
+ENTRYPOINT ["/docker/entrypoint.sh"]
