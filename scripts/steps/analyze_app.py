@@ -313,28 +313,98 @@ class AppAnalyzer:
         if base_url:
             env["ANTHROPIC_BASE_URL"] = base_url
         
-        # Run Claude
+        # Run Claude with streaming output
         try:
             cmd = ["claude", "--dangerously-skip-permissions", full_prompt]
-            result = subprocess.run(
-                cmd, 
-                env=env, 
-                capture_output=True, 
-                text=True, 
-                timeout=300,  # 5 minute timeout
-                check=False
+            print(f"[AppAnalyzer] Executing Claude command...")
+            print(f"[AppAnalyzer] Prompt length: {len(full_prompt)} characters")
+            print(f"[AppAnalyzer] Current Working Dir: {os.getcwd()}")
+            print(f"[AppAnalyzer] Changing to analysis work dir: {self.work_dir}")
+            print(f"[AppAnalyzer] Claude streaming output:")
+            print("=" * 80)
+            
+            # Use Popen for streaming output with correct working directory
+            process = subprocess.Popen(
+                cmd,
+                env=env,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1,  # Line buffered
+                universal_newlines=True,
+                cwd=str(self.work_dir)  # Set working directory to analysis folder
             )
             
-            if result.returncode == 0:
-                return result.stdout
+            output_lines = []
+            error_lines = []
+            
+            # Read output line by line and display it
+            import select
+            import sys
+            
+            while True:
+                # Check if process is still running
+                if process.poll() is not None:
+                    break
+                
+                # Read available output
+                try:
+                    ready, _, _ = select.select([process.stdout, process.stderr], [], [], 0.1)
+                    
+                    if process.stdout in ready:
+                        line = process.stdout.readline()
+                        if line:
+                            line = line.rstrip('\n')
+                            print(f"[Claude] {line}")
+                            output_lines.append(line)
+                            sys.stdout.flush()
+                    
+                    if process.stderr in ready:
+                        line = process.stderr.readline()
+                        if line:
+                            line = line.rstrip('\n')
+                            print(f"[Claude ERROR] {line}")
+                            error_lines.append(line)
+                            sys.stdout.flush()
+                            
+                except (OSError, select.error):
+                    # Fallback for systems without select (like Windows)
+                    break
+            
+            # Get any remaining output
+            remaining_stdout, remaining_stderr = process.communicate(timeout=30)
+            if remaining_stdout:
+                for line in remaining_stdout.strip().split('\n'):
+                    if line:
+                        print(f"[Claude] {line}")
+                        output_lines.append(line)
+            
+            if remaining_stderr:
+                for line in remaining_stderr.strip().split('\n'):
+                    if line:
+                        print(f"[Claude ERROR] {line}")
+                        error_lines.append(line)
+            
+            print("=" * 80)
+            print(f"[AppAnalyzer] Claude analysis completed with return code: {process.returncode}")
+            
+            # Return the full output
+            full_output = '\n'.join(output_lines)
+            full_error = '\n'.join(error_lines)
+            
+            if process.returncode == 0:
+                return full_output
             else:
-                return f"Claude analysis failed: {result.stderr}"
+                return f"Claude analysis failed (code {process.returncode}): {full_error}"
                 
         except FileNotFoundError:
+            print("[AppAnalyzer] ERROR: Claude CLI not found; install claude CLI tool")
             return "Claude CLI not found; install claude CLI tool"
         except subprocess.TimeoutExpired:
+            print("[AppAnalyzer] ERROR: Claude analysis timed out after 5 minutes")
             return "Claude analysis timed out after 5 minutes"
         except Exception as e:
+            print(f"[AppAnalyzer] ERROR: Error running Claude analysis: {e}")
             return f"Error running Claude analysis: {e}"
     
     def _build_full_prompt(self, prompt_template: str, context: Dict[str, str]) -> str:
