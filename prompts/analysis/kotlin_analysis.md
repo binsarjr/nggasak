@@ -1,35 +1,24 @@
-# Android App Endpoint Analysis
+# Android App Analysis
 
 ## Task
 
-Find all real API endpoints from this Android app. Focus on actual HTTP/HTTPS
-URLs.
+Find all API endpoints in this Android app. Use your available tools to explore
+and analyze the codebase.
 
-## Search Strategy
+## Focus Areas
 
-1. **Direct URLs**: Look for `http://` and `https://` strings
-2. **Retrofit APIs**: Find `@GET`, `@POST`, `@PUT`, `@DELETE` annotations
-3. **Base URLs**: Search for `baseUrl`, `BASE_URL`, `API_URL` variables
-4. **Obfuscated URLs**: Check for Base64 encoded strings and string
-   concatenation
+- HTTP/HTTPS URLs in any form
+- API client configurations
+- Authentication mechanisms
+- Network security patterns
 
-## Common Locations
-
-- Java/Kotlin source files
-- `strings.xml` resource files
-- `AndroidManifest.xml`
-- Configuration classes
-- Network client setup code
-
-## Required Output
-
-For each endpoint found, provide:
+## Output Format
 
 ```bash
-# [Description] - Found in [file:line]
+# [Description] - Found in [location]
 curl -X [METHOD] "[URL]" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer [TOKEN]"
+  -H "Content-Type: application/json"
 ```
 
-Analyze the provided files and extract all discoverable endpoints.
+Use your tools to explore the codebase systematically. Start with file
+structure, then dive into specific files as needed.

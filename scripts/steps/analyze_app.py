@@ -307,39 +307,15 @@ class AppAnalyzer:
             }
     
     def _prepare_analysis_context(self) -> Dict[str, str]:
-        """Prepare context information for Claude analysis."""
+        """Prepare minimal context information for Claude analysis."""
         context = {}
         
-        # Read AndroidManifest.xml
-        manifest_path = self.work_dir / "decompiled" / "AndroidManifest.xml"
-        if manifest_path.exists():
-            try:
-                context["manifest"] = manifest_path.read_text(encoding="utf-8", errors="ignore")[:8000]
-            except Exception:
-                context["manifest"] = "<unable to read>"
-        else:
-            context["manifest"] = "<not found>"
-        
-        # Read existing curl.txt if available
-        curl_path = self.work_dir / "curl.txt"
-        if curl_path.exists():
-            try:
-                context["existing_endpoints"] = curl_path.read_text(encoding="utf-8", errors="ignore")[:4000]
-            except Exception:
-                context["existing_endpoints"] = "<unable to read>"
-        else:
-            context["existing_endpoints"] = "<none found by extract_endpoints.py>"
-        
-        # Get file structure overview
+        # Only provide essential structure overview - let AI explore files as needed
         context["file_structure"] = self._get_file_structure_overview()
         
-        # App-type specific context
-        if self.app_type == "Flutter":
-            context.update(self._get_flutter_context())
-        elif self.app_type == "React Native":
-            context.update(self._get_react_native_context())
-        elif self.app_type == "Native Android":
-            context.update(self._get_native_android_context())
+        # App type for reference
+        context["app_type"] = self.app_type
+        context["work_directory"] = str(self.work_dir)
         
         return context
     
@@ -381,77 +357,7 @@ class AppAnalyzer:
         
         return summary
     
-    def _get_flutter_context(self) -> Dict[str, str]:
-        """Get Flutter-specific context."""
-        context = {}
-        
-        # Check flutter_assets
-        flutter_assets = self.work_dir / "decompiled" / "assets" / "flutter_assets"
-        if flutter_assets.exists():
-            # Read AssetManifest.json
-            asset_manifest = flutter_assets / "AssetManifest.json"
-            if asset_manifest.exists():
-                try:
-                    context["asset_manifest"] = asset_manifest.read_text(encoding="utf-8", errors="ignore")[:2000]
-                except Exception:
-                    context["asset_manifest"] = "<unable to read>"
-            
-            # List flutter_assets contents
-            context["flutter_assets_structure"] = self._list_directory_summary(flutter_assets, max_files=30)
-        
-        return context
-    
-    def _get_react_native_context(self) -> Dict[str, str]:
-        """Get React Native-specific context."""
-        context = {}
-        
-        # Check for JavaScript bundles
-        assets_dir = self.work_dir / "decompiled" / "assets"
-        if assets_dir.exists():
-            bundle_files = []
-            for pattern in ["*.bundle", "*.jsbundle"]:
-                bundle_files.extend(assets_dir.glob(pattern))
-            
-            if bundle_files:
-                # Read a sample from the first bundle
-                try:
-                    bundle_content = bundle_files[0].read_text(encoding="utf-8", errors="ignore")[:5000]
-                    context["bundle_sample"] = bundle_content
-                    context["bundle_info"] = f"Found bundles: {[b.name for b in bundle_files]}"
-                except Exception:
-                    context["bundle_sample"] = "<unable to read bundle>"
-        
-        return context
-    
-    def _get_native_android_context(self) -> Dict[str, str]:
-        """Get Native Android-specific context."""
-        context = {}
-        
-        # Check for key Java files in jadx output
-        jadx_dir = self.work_dir / "jadx_output"
-        if jadx_dir.exists():
-            # Look for main activity or important classes
-            java_files = list(jadx_dir.rglob("*.java"))
-            if java_files:
-                # Find MainActivity or similar
-                main_files = [f for f in java_files if "main" in f.name.lower() or "activity" in f.name.lower()]
-                if main_files:
-                    try:
-                        main_content = main_files[0].read_text(encoding="utf-8", errors="ignore")[:3000]
-                        context["main_activity_sample"] = main_content
-                    except Exception:
-                        context["main_activity_sample"] = "<unable to read>"
-        
-        # Check strings.xml files
-        strings_files = list(self.work_dir.rglob("strings.xml"))
-        if strings_files:
-            try:
-                strings_content = strings_files[0].read_text(encoding="utf-8", errors="ignore")[:2000]
-                context["strings_xml"] = strings_content
-            except Exception:
-                context["strings_xml"] = "<unable to read>"
-        
-        return context
+
     
     def _select_prompt(self) -> Path:
         """Select the appropriate analysis prompt based on app type."""
@@ -496,45 +402,21 @@ class AppAnalyzer:
             return f"Claude analysis failed: {result['error']}"
     
     def _build_full_prompt(self, prompt_template: str, context: Dict[str, str]) -> str:
-        """Build the full prompt with context information."""
-        context_section = self._format_context_section(context)
-        
+        """Build a concise prompt for agentic AI analysis."""
         full_prompt = f"""
 {prompt_template}
 
-=== ANALYSIS TARGET INFORMATION ===
+=== TARGET INFO ===
+App Type: {self.app_type}
+Work Directory: {self.work_dir}
 
-App Type: {self.app_type} (Confidence: {self.confidence})
-Analysis Directory: {self.work_dir}
-
-{context_section}
-
-=== YOUR TASK ===
-
-Based on the app type ({self.app_type}) and the provided context, perform a thorough analysis to find all real API endpoints. Follow the specific strategies outlined in the prompt above for {self.app_type} apps.
-
-Focus on:
-1. Finding actual HTTP/HTTPS URLs
-2. Deobfuscating any hidden or encoded URLs  
-3. Understanding the authentication flow
-4. Identifying sensitive data handling
-5. Creating working curl commands
-
-Provide your analysis in the format specified in the prompt.
+=== TASK ===
+You are an agentic AI with tools to explore the codebase. Use your available tools to analyze this {self.app_type} app and find all real API endpoints. Create context for yourself as needed through tool usage.
 """
         
         return full_prompt
     
-    def _format_context_section(self, context: Dict[str, str]) -> str:
-        """Format the context information for the prompt."""
-        sections = []
-        
-        # if "manifest" in context:
-        #     sections.append(f"=== ANDROID MANIFEST ===\n{context['manifest']}\n")
-        
-      
-        
-        return "\n".join(sections)
+
     
     def _process_analysis_results(self, analysis_result: str) -> Dict[str, Any]:
         """Process and structure the Claude analysis results."""

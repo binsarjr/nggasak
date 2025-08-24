@@ -1,38 +1,24 @@
-# React Native Endpoint Analysis
+# React Native App Analysis
 
 ## Task
 
-Find all real API endpoints from this React Native app by analyzing JavaScript
-bundles.
+Find all API endpoints in this React Native app. Use your available tools to
+explore JavaScript bundles and configurations.
 
-## Key Locations
+## Focus Areas
 
-- `assets/index.android.bundle` - Main JavaScript bundle
-- `assets/*.bundle` - Split bundles
-- Look for beautified or decompiled JS code
+- JavaScript bundles and assets
+- HTTP/HTTPS URLs and API calls
+- Configuration objects and environment variables
+- Native bridge implementations
 
-## Search Patterns
-
-1. **API Calls**: `fetch(`, `axios.`, `http.get`, `api.`
-2. **Base URLs**: `baseURL`, `apiUrl`, `BASE_URL`
-3. **Environment URLs**: `__DEV__`, `process.env`
-4. **String Concatenation**: URL building patterns
-
-## Common Patterns
-
-```javascript
-fetch("https://api.example.com/users");
-axios.defaults.baseURL = "https://api.example.com";
-const API_URL = "https://api.example.com";
-```
-
-## Required Output
+## Output Format
 
 ```bash
-# [Description] - Found in [bundle file]
+# [Description] - Found in [location]
 curl -X [METHOD] "[URL]" \
   -H "Content-Type: application/json"
 ```
 
-Focus on extracting the JavaScript bundle first, then search for HTTP/HTTPS
-patterns.
+Use your tools to explore JavaScript bundles and configuration files
+systematically.

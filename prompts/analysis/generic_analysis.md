@@ -1,44 +1,24 @@
-# Generic App Endpoint Analysis
+# Generic App Analysis
 
 ## Task
 
-Find all real API endpoints from this mobile app. Use universal search patterns
-for unknown app types.
+Find all API endpoints in this mobile app. Use your available tools to explore
+the structure systematically.
 
-## Universal Search Strategy
+## Focus Areas
 
-1. **Text Search**: Look for `http://` and `https://` in all files
-2. **API Patterns**: Search for `/api/`, `/v1/`, `/auth/` paths
-3. **Configuration Files**: Check `.json`, `.xml`, `.yml`, `.conf` files
-4. **String Extraction**: Use `strings` command on binary files
+- HTTP/HTTPS URLs in any format
+- Configuration files and resources
+- String patterns and encoded content
+- Network client implementations
 
-## Key Commands
-
-```bash
-# Find HTTP URLs in all files
-find . -type f -exec grep -l "https\?://" {} \;
-
-# Search for API patterns
-grep -r "/api/\|/v[0-9]/\|auth" .
-
-# Extract strings from binaries
-find . -name "*.so" -exec strings {} \; | grep -E "https?://"
-```
-
-## Look For
-
-- Configuration files with endpoints
-- String resources with URLs
-- WebView content
-- Network client setup
-- Base64 encoded URLs
-
-## Required Output
+## Output Format
 
 ```bash
-# [Description] - Found in [file]
+# [Description] - Found in [location]
 curl -X [METHOD] "[URL]" \
   -H "Content-Type: application/json"
 ```
 
-Use comprehensive file scanning since app type is unknown.
+Use your tools to thoroughly explore all files and directories. Start with
+structure overview, then dive into specific files.
