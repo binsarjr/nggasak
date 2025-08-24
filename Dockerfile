@@ -3,7 +3,7 @@ FROM ubuntu:22.04
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
 ENV ANDROID_HOME=/tools/android-sdk
-ENV PATH="${PATH}:/tools/apktool:/tools/dex2jar:/tools/jadx/bin:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:/root/.local/bin:/home/nggasak/.local/bin"
+ENV PATH="${PATH}:/tools/apktool:/tools/dex2jar:/tools/jadx/bin:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:/root/.local/bin:/home/nggasak/.local/bin:/root/.bun/bin"
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -32,6 +32,9 @@ RUN apt-get update && apt-get install -y \
   libssl-dev \
   libffi-dev \
   && rm -rf /var/lib/apt/lists/*
+
+# Install Bun
+RUN curl -fsSL https://bun.com/install | bash
 
 # Install Claude Code CLI (official)
 RUN curl -fsSL https://claude.ai/install.sh | bash && \
