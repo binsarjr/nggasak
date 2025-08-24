@@ -41,6 +41,17 @@ python3 scripts/extract_endpoints.py --root ./data/jadx_output --out ./analysis/
 
 Open `analysis/curl.txt`, review, dedupe, add auth/payloads, and test.
 
+### Automated queue (APK/XAPK in ./data)
+You can process inputs automatically:
+
+```bash
+make process-once  # process all pending .apk/.xapk in ./data
+make watch         # keep watching ./data and process new files
+```
+
+Outputs for each artifact will be under `analysis/<name>/` with:
+- `decompiled/`, `jadx_output/`, `curl.txt`, and optional `ai_analysis.txt`.
+
 ## Make targets (optional)
 ```bash
 make build    # docker-compose build

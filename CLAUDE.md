@@ -38,6 +38,7 @@ This is currently an early-stage project with minimal codebase. The repository c
 - `FILOSOFI.md`: Core project philosophy and naming rationale
 - `README.md`: Basic project documentation
 - `CLAUDE.md`: This guidance file
+ - `scripts/auto_queue.py`: Auto-queue watcher to process any new `.apk`/`.xapk` dropped into `data/`
 
 ## Docker Usage
 
@@ -69,17 +70,19 @@ Based on the project philosophy, key areas to implement:
 ### Primary Analysis Tool
 - **Claude Code** - AI-powered reverse engineering assistant
   ```bash
-  # Launch Claude Code for interactive analysis (always use --dangerously-skip-permissions for RE work)
-  claude --dangerously-skip-permissions
+  # Launch Claude Code for interactive analysis
+  claude
   
   # Analyze decompiled APK structure
-  claude --dangerously-skip-permissions "analyze this decompiled APK structure and identify key components"
+  claude "analyze this decompiled APK structure and identify key components"
   
   # Generate analysis scripts
-  claude --dangerously-skip-permissions "create a script to extract API endpoints from this smali code"
+  claude "create a script to extract API endpoints from this smali code"
   
   # Code pattern detection
-  claude --dangerously-skip-permissions "find encryption/obfuscation patterns in these Java files"
+  claude "find encryption/obfuscation patterns in these Java files"
+
+Note: The flag --dangerously-skip-permissions is not allowed when running as root/sudo inside the container and will fail. Use plain `claude` without the flag.
   ```
 
 ### Core APK Analysis Tools
@@ -140,3 +143,36 @@ Recommended stack for CLI-based analysis:
 - **Docker** - Containerized analysis environments
 - **Shell scripts** - Tool integration and workflow automation
 - **Static analysis tools** - apktool, jadx, dex2jar, reflutter
+
+## Automated Ingestion and Analysis Queue
+
+Nggasak runs as an automated system: whenever an `.apk` or `.xapk` file is placed in the `data/` folder, it is automatically queued for analysis. Each artifact is processed one-by-one to ensure reproducibility and clear outputs.
+
+High-level flow per file (MVP):
+- Detect new `.apk`/`.xapk` inside `data/`
+- For `.xapk`, extract and select the primary/base APK
+- Decompile with `apktool` and `jadx`
+- Extract API endpoints with `scripts/extract_endpoints.py`
+- Perform code analysis with Claude Code CLI (if API key is configured)
+- Save all results under `analysis/<app_basename>/`
+
+Outputs per artifact (example):
+- `analysis/<name>/decompiled/` – apktool output
+- `analysis/<name>/jadx_output/` – JADX decompiled sources
+- `analysis/<name>/curl.txt` – auto-generated cURL templates of discovered endpoints
+- `analysis/<name>/ai_analysis.txt` – Claude Code summary (if enabled)
+- `analysis/.processed/<original_filename>.done` – marker for processed inputs
+
+How to run the queue in Docker:
+- One-shot process everything pending: `make process-once`
+- Continuous watch mode: `make watch`
+
+Environment variables:
+- `ANTHROPIC_API_KEY` – Claude API key used by the CLI
+- `ANTHROPIC_AUTH_TOKEN` – alternative var name; if set, it will be mapped to `ANTHROPIC_API_KEY`
+- `ANTHROPIC_BASE_URL` – optional alternative base URL for the Claude CLI
+- `AUTO_WATCH=1` – if set for the container entrypoint (future), start watcher automatically
+
+Notes:
+- Only authorized analysis is allowed. Ensure you have permission to analyze each application.
+- If Claude CLI isn't configured, the pipeline still produces decompilations and endpoint extraction.

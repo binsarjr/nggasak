@@ -3,7 +3,6 @@
 node_modules
 analysis
 data
-docker
 .git
 .github
 scripts/__pycache__
