@@ -5,10 +5,7 @@ services:
     user: "nggasak"
     volumes:
       - ./data:/data
-      - ./analysis:/analysis
       - ./docker:/docker
-      - ./scripts:/scripts
-      - ./prompts:/prompts
     working_dir: /data
     stdin_open: true
     tty: true

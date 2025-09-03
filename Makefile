@@ -1,4 +1,4 @@
-.PHONY: build up run exec stop logs extract
+.PHONY: build up exec stop logs
 
 DOCKER=docker-compose
 SERVICE=nggasak-analyzer
@@ -9,11 +9,8 @@ build:
 up:
 	$(DOCKER) up -d $(SERVICE)
 
-run:
-	$(DOCKER) run --rm $(SERVICE)
-
 exec:
-	$(DOCKER) exec $(SERVICE) bash
+	$(DOCKER) exec -it $(SERVICE) bash
 
 stop:
 	$(DOCKER) down
