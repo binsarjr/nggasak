@@ -5,10 +5,9 @@ code in this repository.
 
 ## Project Overview
 
-Nggasak is a simple Docker container for reverse engineering and security
-analysis of mobile applications. The name "Nggasak" comes from Javanese meaning
-"to extract/dismantle completely" - reflecting comprehensive analysis
-capabilities.
+Nggasak is an all-in-one Docker container for reverse engineering and security
+analysis. The name "Nggasak" comes from Javanese meaning "to extract/dismantle
+completely" - providing comprehensive analysis tools in a single container.
 
 ## Core Philosophy
 
@@ -44,67 +43,71 @@ Based on FILOSOFI.md, this tool emphasizes:
 
 ## Simple Docker Workflow
 
-This is a simple Docker container approach:
+All-in-one container approach:
 
 1. **Start Container**: `docker-compose up -d`
 2. **Access Container**: `docker exec -it nggasak-analysis bash`
-3. **Place APKs**: Put APK files in `./data/` folder (mounted as `/data`)
-4. **Use Tools Manually**: Run analysis tools as needed
-5. **Use Claude**: Run `claude` for AI-powered analysis inside container
+3. **Full Project Access**: Entire project mounted at `/workspace`
+4. **Use Any Tool**: All RE tools pre-installed and ready
+5. **Use Claude from Host**: Access Claude CLI from host system
 
-## Reverse Engineering Tools
+## All-in-One RE Tools
 
-All tools are pre-installed and available via command line:
+### 📱 Mobile Application Analysis
+- **apktool** - APK decompile/recompile: `apktool d app.apk`
+- **jadx** - Java decompiler: `jadx app.apk -d output/`
+- **dex2jar** - DEX to JAR: `d2j-dex2jar app.apk`
+- **reflutter** - Flutter analysis: `reflutter app.apk`
+- **androguard** - Python Android analysis library
 
-### Core APK Analysis Tools
+### 🔍 Binary Analysis & Reverse Engineering
+- **radare2** - Advanced binary analysis: `r2 binary`
+- **binwalk** - Firmware analysis: `binwalk firmware.bin`
+- **strings** - Extract strings: `strings binary`
+- **objdump** - Object file analysis: `objdump -d binary`
+- **hexdump** - Hex viewer: `hexdump -C file`
 
-- **apktool** - Decompile APK to smali code and resources
-  ```bash
-  apktool d app.apk -o decompiled/
-  apktool b decompiled_app/
-  ```
-- **dex2jar** - Convert DEX files to JAR format
-  ```bash
-  d2j-dex2jar app.apk -o target.jar
-  ```
-- **jadx** - Java decompiler for Android apps
-  ```bash
-  jadx app.apk -d jadx_output/
-  ```
-- **reflutter** - Flutter app analysis and patching
-  ```bash
-  reflutter app.apk
-  ```
+### 🔐 Cryptography & Password Tools
+- **openssl** - Crypto operations: `openssl enc -aes-256-cbc`
+- **hashcat** - Password cracking: `hashcat -m 0 hash.txt wordlist.txt`
+- **john** - Password cracking: `john --wordlist=rockyou.txt hashes.txt`
 
-### Claude Code Integration
+### 🌐 Network Analysis
+- **nmap** - Network scanner: `nmap -sV target`
+- **netcat** - Network utility: `nc -lvp 4444`
+- **tcpdump** - Packet capture: `tcpdump -i eth0`
+- **tshark** - Wireshark CLI: `tshark -i eth0`
 
-- **claude** - AI-powered analysis inside the container
-  ```bash
-  # Analyze decompiled code
-  claude "analyze this decompiled APK structure"
-  
-  # Find patterns
-  claude "find encryption patterns in Java code"
-  
-  # Extract APIs
-  claude "extract API endpoints from this code"
-  ```
+### 🐍 Python Security Libraries
+- **frida** - Dynamic instrumentation
+- **objection** - Mobile security testing
+- **capstone** - Disassembly engine
+- **yara** - Pattern matching
+- **scapy** - Packet manipulation
 
 ### Analysis Workflow Examples
 
 ```bash
-# Basic workflow
-apktool d target.apk -o decompiled/
-jadx target.apk -d jadx_output/
-claude "analyze the decompiled APK in /data/decompiled/"
+# Mobile app analysis
+apktool d app.apk -o decompiled/
+jadx app.apk -d jadx_output/
+strings app.apk | grep -i api
 
-# Flutter analysis
-reflutter target.apk
-claude "analyze the extracted Flutter code"
+# Binary reverse engineering
+radare2 -A binary
+binwalk -e firmware.bin
+strings binary | grep -E "(password|key|token)"
 
-# Deep analysis
-d2j-dex2jar target.apk -o target.jar
-claude "find security vulnerabilities in the Java code"
+# Network analysis
+nmap -sS -O target_ip
+tcpdump -i any port 443
+
+# Crypto analysis
+openssl x509 -in cert.pem -text
+hashcat -m 1400 sha256_hashes.txt rockyou.txt
+
+# Extract endpoints from APK
+strings app.apk | grep -E "(http|https|api)" | sort -u
 ```
 
 ## Environment Setup

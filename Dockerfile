@@ -3,7 +3,7 @@ FROM ubuntu:22.04
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
 ENV ANDROID_HOME=/tools/android-sdk
-ENV PATH="${PATH}:/tools/apktool:/tools/dex2jar:/tools/jadx/bin:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:/root/.local/bin:/home/nggasak/.local/bin:/root/.bun/bin"
+ENV PATH="${PATH}:/tools/apktool:/tools/dex2jar:/tools/jadx/bin:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools"
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -31,18 +31,28 @@ RUN apt-get update && apt-get install -y \
   build-essential \
   libssl-dev \
   libffi-dev \
+  nmap \
+  netcat-openbsd \
+  tcpdump \
+  tshark \
+  openssl \
+  jq \
+  binwalk \
+  john \
+  hashcat \
+  cmake \
   && rm -rf /var/lib/apt/lists/*
 
-# Install Bun
-RUN curl -fsSL https://bun.com/install | bash
+# Install Radare2 from source (lightweight installation)
+RUN git clone --depth 1 https://github.com/radareorg/radare2 /tmp/radare2 && \
+    cd /tmp/radare2 && \
+    ./sys/install.sh && \
+    cd / && \
+    rm -rf /tmp/radare2
 
-# Install Claude Code CLI (official)
-RUN curl -fsSL https://claude.ai/install.sh | bash && \
-  if [ -f /root/.local/bin/claude ]; then cp -f /root/.local/bin/claude /usr/local/bin/claude; fi && \
-  chmod 755 /usr/local/bin/claude
-
+# Note: strings command is part of binutils package (already installed)
 # Create tools directory
-RUN mkdir -p /tools /data
+RUN mkdir -p /tools
 
 # Install apktool
 WORKDIR /tools/apktool
@@ -79,7 +89,7 @@ RUN wget https://github.com/skylot/jadx/releases/download/v1.4.7/jadx-1.4.7.zip 
 #   echo '#!/bin/bash\njava -jar /tools/smali.jar "$@"' > /usr/local/bin/smali && \
 #   chmod +x /usr/local/bin/baksmali /usr/local/bin/smali
 
-# Install Python tooling
+# Install Python tooling (skip keystone-engine due to build issues)
 RUN pip3 install --no-cache-dir \
   reflutter \
   frida-tools \
@@ -88,7 +98,14 @@ RUN pip3 install --no-cache-dir \
   beautifulsoup4 \
   lxml \
   pycryptodome \
-  androguard
+  androguard \
+  capstone \
+  unicorn \
+  yara-python \
+  pyelftools \
+  pefile \
+  cryptography \
+  scapy
 
 # Create symbolic links for easier access
 RUN ln -s /tools/dex2jar/d2j-dex2jar.sh /usr/local/bin/d2j-dex2jar && \
@@ -108,21 +125,16 @@ RUN wget https://dl.google.com/android/repository/commandlinetools-linux-1107670
   export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin && \
   ln -s /tools/android-sdk/cmdline-tools/latest/bin/apksigner /usr/local/bin/apksigner || true
 
-# Set working directory
-WORKDIR /data
-
 # Copy entrypoint as a fallback if volume not mounted
 COPY docker/entrypoint.sh /docker/entrypoint.sh
 RUN chmod +x /docker/entrypoint.sh
 
-# Create non-root user so we can use --dangerously-skip-permissions
-RUN useradd -ms /bin/bash nggasak && \
-  mkdir -p /analysis /data && \
-  chown -R nggasak:nggasak /analysis /data || true
+# Create non-root user
+RUN useradd -ms /bin/bash nggasak
 
 # Switch to non-root user
 USER nggasak
-WORKDIR /data
+WORKDIR /workspace
 
 # Entrypoint (can be overridden by docker-compose volume mount)
 ENTRYPOINT ["/docker/entrypoint.sh"]

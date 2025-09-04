@@ -4,9 +4,8 @@ services:
     container_name: nggasak-analysis
     user: "nggasak"
     volumes:
-      - ./data:/data
-      - ./docker:/docker
-    working_dir: /data
+      - .:/workspace
+    working_dir: /workspace
     stdin_open: true
     tty: true
     env_file:
